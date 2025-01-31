@@ -15,7 +15,7 @@ To use the tool you should open fragmensearch directory
 ### There are two mods in which the tool can work:
 **1. Auto mode:** In this mode, the space, occupaed by a given `.pdb` structure, devided randomly into cubic subspaces with a side of 30 angstroms. Than, aminoacid residues, located in each subspace, are extracted and foldseek search is performed for each of them. For that mode you shoud provide only a path to `.pdb`:
 ```bash
-./fargmentsearch.sh <path_to_pdb>
+./fragmentsearch.sh <path_to_pdb>
 ```
 **2.Manual mode:** In this mode, you manually assign regions for search with a `.csv` file in which the first column contains starts, the second - ends of fragments, the third - chain in which the fragment is located:
 ```
@@ -27,7 +27,7 @@ start_n,end_n,chain_n
 ```
 All asiigned regions will be extracted as a united structure and foldseek search will be performed for it. To run the tool in this mode perform:
 ```bash
-./fargmentsearch.sh <path_to_pdb> <path_to_csv>
+./fragmentsearch.sh <path_to_pdb> <path_to_csv>
 ```
 ## Results
 As result the tool will create a folder named `name_fragments` where name will be replaced with name of provided `.pdb`. The folder will contain `.pdb` files of fragments and results of foldseek search for aech of them.
@@ -36,7 +36,7 @@ As result the tool will create a folder named `name_fragments` where name will b
 Fragmentsearch provides `example.pdb` to test the tool:
 ```bash
 #Auto mode:
-./fargmentsearch.sh ./technical_files/example.pdb A
+./fragmentsearch.sh ./technical_files/example.pdb A
 #Manual mode:
-./fargmentsearch.sh ./technical_files/example.pdb A ./technical_files/example.csv
+./fragmentsearch.sh ./technical_files/example.pdb A ./technical_files/example.csv
 ```
