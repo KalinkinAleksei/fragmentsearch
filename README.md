@@ -1,4 +1,6 @@
 # fragmentsearch
+![demo](https://github.com/KalinkinAleksei/fragmentsearch/blob/main/technical_files/demo.png)
+
 Fragmentsearch is a [Foldseek](https://github.com/steineggerlab/foldseek)-based pipeline designed to identify proteins with structural similarity to specific fragments of a given protein structure
 
 ## Installation
@@ -36,7 +38,7 @@ As result the tool will create a folder named `name_fragments` where name will b
 Fragmentsearch provides `example.pdb` to test the tool:
 ```bash
 #Auto mode:
-./fragmentsearch.sh ./technical_files/example.pdb A
+./fragmentsearch.sh ./technical_files/example.pdb
 #Manual mode:
-./fragmentsearch.sh ./technical_files/example.pdb A ./technical_files/example.csv
+./fragmentsearch.sh ./technical_files/example.pdb ./technical_files/example.csv
 ```
