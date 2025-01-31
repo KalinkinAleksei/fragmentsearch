@@ -8,12 +8,9 @@ aminoacids = ['ALA', 'ARG', 'ASN', 'ASP',
               'MET', 'PHE', 'PRO', 'SER', 
               'THR', 'TRP', 'TYR', 'VAL']
 
-fragment_length = 30
-
 pdb_path = sys.argv[1]
-chain = sys.argv[2]
-csv_path = sys.argv[3]
-sample_name = sys.argv[4]
+csv_path = sys.argv[2]
+sample_name = sys.argv[3]
 
 text = []
 lines = []
@@ -21,35 +18,80 @@ with open(pdb_path, 'r') as f:
     for line in f:
         if line[:4] == 'ATOM':
             line_lst = line.split()
-            if len(line_lst) > 3 and line_lst[3] in aminoacids and line_lst[4] == chain:
+            if line_lst[3] in aminoacids:
                 text.append(line)
                 lines.append(line[:-1].split())
-if len(text) == 0:
-    sys.exit(42)
+
 df = pd.DataFrame(lines)
-df.loc[:, 5] = df.loc[:, 5]
 
 if csv_path == 'none':
-    aa_nums = df.loc[:, 5].unique()
-    l = len(aa_nums)
-    fragments = pd.DataFrame()
-    fragments['starts'] = np.random.randint(0, l-fragment_length, int(l/(fragment_length/2)))
-    fragments['ends'] = fragments['starts'] + fragment_length
-    fragments_exp = pd.DataFrame()
-    fragments_exp['starts'] = [aa_nums[i] for i in fragments['starts']]
-    fragments_exp['ends'] = [aa_nums[i] for i in fragments['ends']]
-else:
-    fragments_exp = pd.read_csv(csv_path,  header=None, names=['starts', 'ends'])
+    for i in [6, 7, 8]:
+        df.loc[:, i] = df.loc[:, i].apply(float)
 
-for i in range(len(fragments_exp)):
+    max_x = df.loc[:, 6].max()
+    min_x = df.loc[:, 6].min()
+    max_y = df.loc[:, 7].max()
+    min_y = df.loc[:, 7].min()
+    max_z = df.loc[:, 8].max()
+    min_z = df.loc[:, 8].min()
+
+    def define_limits(max_val, min_val, selection_edge_size):
+        return max_val - selection_edge_size/2, min_val + selection_edge_size/2
+
+    selection_edge_size = 30
+    boarders = [define_limits(max_x, min_x, selection_edge_size),
+              define_limits(max_y, min_y, selection_edge_size),
+              define_limits(max_z, min_z, selection_edge_size)]
+
+    def culck_dist(max_val, min_val):
+        if min_val*max_val > 0:
+            dist = abs(abs(max_val) - abs(min_val))
+        else:
+            dist = abs(max_val) + abs(min_val)
+        return dist
+
+    x_edge = culck_dist(max_x, min_x)
+    y_edge = culck_dist(max_y, min_y)
+    z_edge = culck_dist(max_z, min_z)
+    V = x_edge*y_edge*z_edge
+    ratio = V/(selection_edge_size**3)
+    n = int(ratio)
+    for i in range(n):
+        coordinates = [np.random.uniform(low, high) for low, high in boarders]
+        x_lim = [coordinates[0] - selection_edge_size/2, coordinates[0] + selection_edge_size/2]
+        y_lim = [coordinates[1] - selection_edge_size/2, coordinates[1] + selection_edge_size/2]
+        z_lim = [coordinates[2] - selection_edge_size/2, coordinates[2] + selection_edge_size/2]
+        selected_aminoacids = []
+        for i in range(len(df)):
+            X = df.loc[i, 6] > x_lim[0] and df.loc[i, 6] <  x_lim[1]
+            Y = df.loc[i, 7] > y_lim[0] and df.loc[i, 7] <  y_lim[1]
+            Z = df.loc[i, 8] > z_lim[0] and df.loc[i, 8] <  z_lim[1]
+            if X and Y and Z:
+                res_num = df.loc[i, 5]
+                if res_num not in selected_aminoacids:
+                    selected_aminoacids.append(str(res_num))
+        if len(selected_aminoacids) > 25:
+            selection = []
+            for i in range(len(lines)):
+                if lines[i][5] in selected_aminoacids:
+                    selection.append(i)
+            x = round(coordinates[0], 2)
+            y = round(coordinates[1], 2)
+            z = round(coordinates[2], 2)
+            with open(f'./{sample_name}_results/{x}_{y}_{z}_{sample_name}.pdb', 'w') as f:
+                f.write(''.join([text[i] for i in selection]))
+else:
+    fragments_exp = pd.read_csv(csv_path,  header=None, names=['start', 'end', 'chain'])
     text_fragment = []
-    start = int(fragments_exp['starts'].loc[i])
-    end = int(fragments_exp['ends'].loc[i])
-    for line in text:
-        aa_num = int(line.split()[5])
-        if aa_num >= start and aa_num <= end:
-            text_fragment.append(line)
-    with open(f'./{sample_name}_results/{start}-{end}_{sample_name}.pdb', 'w') as f:
+    for i in range(len(fragments_exp)):
+        start = int(fragments_exp['start'].loc[i])
+        end = int(fragments_exp['end'].loc[i])
+        chain = fragments_exp['chain'].loc[i]
+        for line in text:
+            aa_num = int(line.split()[5])
+            aa_chain = line.split()[4]
+            if aa_num >= start and aa_num <= end and aa_chain == chain:
+                text_fragment.append(line)
+    with open(f'./{sample_name}_results/{sample_name}_fragment.pdb', 'w') as f:
         f.write(''.join(text_fragment) + 'END')
-    
 print('fragments created')

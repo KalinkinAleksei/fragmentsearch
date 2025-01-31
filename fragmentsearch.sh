@@ -1,12 +1,11 @@
 #!/bin/bash
 
-if [ "$#" -lt 2 ] || [ "$#" -gt 3 ]; then
-    echo "Usage: pipeline <pdb_path> <chain> <mode> [<csv_path>]"
+if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then
+    echo "Usage: pipeline <pdb_path> [<csv_path>]"
     exit 1
 fi
 
 pdb_path=$1
-chain=$2
 csv_path="none"
 
 if [ ! -e "$pdb_path" ]; then
@@ -35,15 +34,15 @@ fi
 
 mkdir $dir_path
 
-if [ -n "$3" ]; then
-	csv_path=$3
+if [ -n "$2" ]; then
+	csv_path=$2
 	if [ ! -e "$csv_path" ]; then
 		echo "Provided .csv does not exist."
 		exit 1
 	fi
 fi
 
-python3 ./technical_files/create_fragments.py "$1" "$2" "$csv_path" "$name"
+python3 ./technical_files/create_fragments.py "$1" "$csv_path" "$name"
 
 if [ $? -eq 42 ]; then
     echo "Chain $chain does not present in $pdb_path"
