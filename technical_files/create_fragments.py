@@ -75,9 +75,14 @@ if csv_path == 'none':
             for i in range(len(lines)):
                 if lines[i][5] in selected_aminoacids:
                     selection.append(i)
-            x = round(coordinates[0], 2)
-            y = round(coordinates[1], 2)
-            z = round(coordinates[2], 2)
+            def create_coor_name(coor):
+                coor = round(coor, 2)
+                if coor < 0:
+                    return 'm'+str(coor)
+                return str(coor)
+            x = create_coor_name(coordinates[0])
+            y = create_coor_name(coordinates[1])
+            z = create_coor_name(coordinates[2])
             with open(f'./{sample_name}_results/{x}_{y}_{z}_{sample_name}.pdb', 'w') as f:
                 f.write(''.join([text[i] for i in selection]))
 else:
