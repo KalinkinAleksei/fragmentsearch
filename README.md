@@ -15,7 +15,7 @@ To use the tool you should open fragmensearch directory
 ### There are two mods in which the tool can work:
 **1. Auto mode:** In this mode, the space, occupaed by a given `.pdb` structure, devided randomly into cubic subspaces with a side of 30 angstroms. Than, aminoacid residues, located in each subspace, are extracted and foldseek search is performed for each of them. For that mode you shoud provide only a path to `.pdb`:
 ```bash
-./fargmentsearch.sh <path_to_pdb> <chain>
+./fargmentsearch.sh <path_to_pdb>
 ```
 **2.Manual mode:** In this mode, you manually assign regions for search with a `.csv` file in which the first column contains starts, the second - ends of fragments, the third - chain in which the fragment is located:
 ```
