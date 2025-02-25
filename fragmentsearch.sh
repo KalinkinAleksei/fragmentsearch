@@ -1,12 +1,13 @@
 #!/bin/bash
 
-if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then
-    echo "Usage: pipeline <pdb_path> [<csv_path>]"
+if [ "$#" -lt 2 ] || [ "$#" -gt 3 ]; then
+    echo "Usage: pipeline <pdb_path> <chain> [<csv_path>]"
     exit 1
 fi
 
 pdb_path=$1
 csv_path="none"
+chain=$2
 
 if [ ! -e "$pdb_path" ]; then
 	echo "Provided .pdb does not exist."
@@ -16,6 +17,7 @@ fi
 name=$(basename "$pdb_path" .pdb)
 
 dir_path="./${name}_results"
+tmalign_output_path="$dir_path/tmalign_output"
 
 if [ -e "$dir_path" ]; then
 	echo "The $dir_path directory already exists"
@@ -34,7 +36,7 @@ fi
 
 mkdir $dir_path
 
-if [ -n "$2" ]; then
+if [ -n "$3" ]; then
 	csv_path=$2
 	if [ ! -e "$csv_path" ]; then
 		echo "Provided .csv does not exist."
@@ -42,7 +44,7 @@ if [ -n "$2" ]; then
 	fi
 fi
 
-python3 ./technical_files/create_fragments.py "$1" "$csv_path" "$name"
+python3 ./technical_files/create_fragments.py "$1" "$chain" "$csv_path" "$name"
 
 if [ $? -eq 42 ]; then
     echo "Chain $chain does not present in $pdb_path"
@@ -58,3 +60,28 @@ for pdb_file in "."/*.pdb; do
 done
 
 rm -rf tmp
+
+cd ..
+
+touch "$dir_path/ids.txt"
+
+for result_path in $(find "$dir_path" -type f -name "*_result"); do
+    result_name="${result_path##*/}"
+    echo $result_name
+    python3 ./technical_files/extract_pdb_ids.py $name $result_name
+done
+
+mkdir $tmalign_output_path
+mkdir $dir_path/real_structures
+
+for id in $(cat $dir_path/ids.txt); do
+    wget -P $dir_path/real_structures "https://files.rcsb.org/download/$id.pdb"
+	echo "$dir_path/real_structures/$id.pdb"
+    TMalign $1 "$dir_path/real_structures/$id.pdb" -o "$tmalign_output_path/$id"
+done
+
+mkdir $dir_path/results
+
+for id in $(cat $dir_path/ids.txt); do
+    python3 ./technical_files/process_tmalign_output.py $name $id
+done
