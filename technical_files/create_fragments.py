@@ -9,8 +9,9 @@ aminoacids = ['ALA', 'ARG', 'ASN', 'ASP',
               'THR', 'TRP', 'TYR', 'VAL']
 
 pdb_path = sys.argv[1]
-csv_path = sys.argv[2]
-sample_name = sys.argv[3]
+chain = sys.argv[2]
+csv_path = sys.argv[3]
+sample_name = sys.argv[4]
 
 text = []
 lines = []
@@ -18,9 +19,12 @@ with open(pdb_path, 'r') as f:
     for line in f:
         if line[:4] == 'ATOM':
             line_lst = line.split()
-            if line_lst[3] in aminoacids:
+            if line_lst[3] in aminoacids and line_lst[4]:
                 text.append(line)
                 lines.append(line[:-1].split())
+
+if len(lines) == 0:
+    sys.exit(42)
 
 df = pd.DataFrame(lines)
 
